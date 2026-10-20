@@ -2,6 +2,16 @@ name: Publish Docker image
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "v*"
+    paths:
+      - main.py
+      - requirements.txt
+      - Dockerfile
+      - .dockerignore
+      - .github/workflows/publish-image.yml
   workflow_dispatch:
 
 permissions:
@@ -9,7 +19,7 @@ permissions:
 
 concurrency:
   group: publish-image-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   publish:
@@ -24,18 +34,6 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
-
-      - name: Run tests
-        run: python -m unittest -v
 
       - name: Set image name
         id: image
@@ -54,9 +52,6 @@ jobs:
             type=ref,event=tag
             type=sha,format=long
 
-      - name: Set up emulation
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -72,7 +67,7 @@ jobs:
         with:
           context: .
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           cache-from: type=gha

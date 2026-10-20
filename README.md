@@ -112,14 +112,23 @@ repository initialization or publication is needed to prepare these files.
 1. Create your repository and push the project to its default branch.
 2. In the repository's **Actions** tab, enable Actions if prompted. Ensure your
    repository/organization policy permits workflows to write packages.
-3. The **Publish Docker image** workflow tests the app, then builds and pushes
-   Linux AMD64 and ARM64 images to `ghcr.io/OWNER/REPOSITORY` (all lowercase).
+3. The **Publish Docker image** workflow builds and pushes a Linux AMD64 image
+   to `ghcr.io/OWNER/REPOSITORY` (all lowercase).
    It authenticates using GitHub's automatic `GITHUB_TOKEN`; no additional
    publishing secret is required.
 
-The workflow runs for default-branch pushes and tags beginning with `v`.
-Other branch pushes are skipped. You can also run it manually from the Actions
-tab with the default branch selected.
+To minimize runner time, the workflow runs only for pushes to `main` that change
+the application, requirements, Dockerfile, Docker ignore rules, or publishing
+workflow. Documentation-only and test-only pushes do not build an image.
+Tags beginning with `v` also trigger publishing regardless of changed paths.
+You can run it manually from the Actions tab with the default branch selected.
+If you rename the default branch, update the workflow's `push.branches` filter.
+
+Superseded runs on the same branch are canceled, and Docker layers are cached
+between builds. There is no ARM64 emulation, separate Python setup, or test run
+in this workflow. Run `python -m unittest -v` locally before publishing; failed
+tests will not automatically block image publication. ARM64-only servers need
+a separate ARM64 build or compatible emulation.
 
 Published tags:
 
