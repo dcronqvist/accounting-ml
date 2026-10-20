@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_PATH: /data/model.pkl
+      SEED_CSV_PATH: /data/transactions.csv
+    volumes:
+      - ./data:/data
